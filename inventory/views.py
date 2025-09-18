@@ -111,6 +111,7 @@ def medicine_sell(request, id):
     if request.method == 'POST':
         try:
             quantity_sold = int(request.POST.get('quantity_sold', 0))
+            payment_mode = request.POST.get('payment_mode', 'Cash')  # default to Cash
         except ValueError:
             error = "Invalid quantity. Enter a number."
             return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
@@ -118,8 +119,12 @@ def medicine_sell(request, id):
         if 0 < quantity_sold <= medicine.quantity:
             medicine.quantity -= quantity_sold
             medicine.save()
-            Sale.objects.create(medicine=medicine, quantity_sold=quantity_sold)
-            return redirect('medicine_list')
+            Sale.objects.create(
+                medicine=medicine,
+                quantity_sold=quantity_sold,
+                payment_mode=payment_mode
+            )
+            return redirect('sales_list')
         else:
             error = "Invalid quantity. Check stock."
             return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
@@ -135,10 +140,13 @@ def sales_list(request):
     if query:
         sales = sales.filter(medicine__name__icontains=query)
 
-    # Precompute profit & total_sale in Ksh
+    # Precompute profit & total_sale in Ksh for each sale
     for sale in sales:
         sale.profit = (sale.medicine.selling_price - sale.medicine.buying_price) * sale.quantity_sold
         sale.total_sale = sale.medicine.selling_price * sale.quantity_sold
+        # Ensure payment_mode is always available
+        if not hasattr(sale, 'payment_mode') or not sale.payment_mode:
+            sale.payment_mode = "Cash"
 
     total_profit = sum(sale.profit for sale in sales)
 

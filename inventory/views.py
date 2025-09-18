@@ -1,18 +1,41 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Medicine
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from .models import Medicine, Sale
 from .forms import MedicineForm
 from django.utils import timezone
 from datetime import timedelta
 
+# ----- LOGIN VIEW -----
+def user_login(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('medicine_list')
+        # If invalid credentials
+        error = "Invalid username or password."
+        return render(request, 'inventory/login.html', {'form': form, 'error': error})
+    else:
+        form = AuthenticationForm()
+    return render(request, 'inventory/login.html', {'form': form})
+
+# ----- LOGOUT VIEW -----
+@login_required
+def user_logout(request):
+    logout(request)
+    return redirect('user_login')
+
+
+# ----- MEDICINE VIEWS (Require login) -----
+@login_required
 def medicine_list(request):
     medicines = Medicine.objects.all()
-
-    # Add profit calculations for each medicine
-    total_profit = 0
-    for med in medicines:
-        med.profit_per_unit = med.selling_price - med.buying_price
-        med.total_profit = med.profit_per_unit * med.quantity
-        total_profit += med.total_profit
 
     # Low-stock alerts: quantity < 10
     low_stock = medicines.filter(quantity__lt=10)
@@ -21,6 +44,10 @@ def medicine_list(request):
     soon_to_expire = medicines.filter(
         expiry_date__lte=timezone.now().date() + timedelta(days=30)
     )
+
+    # Total profit from all sales
+    sales = Sale.objects.all()
+    total_profit = sum(sale.profit() for sale in sales)
 
     context = {
         'medicines': medicines,
@@ -32,6 +59,7 @@ def medicine_list(request):
     return render(request, 'inventory/medicine_list.html', context)
 
 
+@login_required
 def medicine_add(request):
     if request.method == 'POST':
         form = MedicineForm(request.POST)
@@ -43,6 +71,7 @@ def medicine_add(request):
     return render(request, 'inventory/medicine_form.html', {'form': form})
 
 
+@login_required
 def medicine_edit(request, id):
     medicine = get_object_or_404(Medicine, id=id)
     if request.method == 'POST':
@@ -55,9 +84,32 @@ def medicine_edit(request, id):
     return render(request, 'inventory/medicine_form.html', {'form': form})
 
 
+@login_required
 def medicine_delete(request, id):
     medicine = get_object_or_404(Medicine, id=id)
     if request.method == 'POST':
         medicine.delete()
         return redirect('medicine_list')
     return render(request, 'inventory/medicine_delete.html', {'medicine': medicine})
+
+
+@login_required
+def medicine_sell(request, id):
+    medicine = get_object_or_404(Medicine, id=id)
+    
+    if request.method == 'POST':
+        quantity_sold = int(request.POST.get('quantity_sold', 0))
+        if quantity_sold > 0 and quantity_sold <= medicine.quantity:
+            # Reduce stock
+            medicine.quantity -= quantity_sold
+            medicine.save()
+
+            # Record the sale
+            Sale.objects.create(medicine=medicine, quantity_sold=quantity_sold)
+
+            return redirect('medicine_list')
+        else:
+            error = "Invalid quantity. Check stock."
+            return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
+
+    return render(request, 'inventory/medicine_sell.html', {'medicine': medicine})

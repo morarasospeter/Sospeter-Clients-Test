@@ -16,7 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'inventory',  # <-- Added your app here
+    'inventory',  # <-- Your app
 ]
 
 MIDDLEWARE = [
@@ -34,7 +34,7 @@ ROOT_URLCONF = 'pharmacy.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [],  # You can add templates folder path if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,3 +74,15 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# -------------------------
+# LOGIN SETTINGS
+# -------------------------
+# Redirect to login page if user not authenticated
+LOGIN_URL = '/login/'
+
+# Redirect after successful login
+LOGIN_REDIRECT_URL = '/medicines/'
+
+# Redirect after logout
+LOGOUT_REDIRECT_URL = '/login/'

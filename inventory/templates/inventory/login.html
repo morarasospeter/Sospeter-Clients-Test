@@ -45,10 +45,16 @@
         <h2 class="text-center mb-4">Login</h2>
         <form method="post">
             {% csrf_token %}
-            {{ form.username.label_tag }} 
-            {{ form.username }}
-            {{ form.password.label_tag }} 
-            {{ form.password }}
+
+            <!-- Explicit username and password fields -->
+            <div class="mb-3">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+            </div>
+            <div class="mb-3">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+            </div>
 
             <button type="submit" class="btn btn-success w-100 mt-3">Login</button>
         </form>

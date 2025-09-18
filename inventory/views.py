@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Medicine, Sale
 from .forms import MedicineForm
@@ -11,16 +11,19 @@ from datetime import timedelta
 def user_login(request):
     error = None  # default error message
     if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()  # safely get the authenticated user
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)  # Explicit check
+        if user is not None:
             login(request, user)
             return redirect('medicine_list')
         else:
             error = "Invalid username or password. Please check both fields."
+        form = AuthenticationForm(request, data=request.POST)
     else:
         form = AuthenticationForm()
-    
+
     return render(request, 'inventory/login.html', {'form': form, 'error': error})
 
 # ----- LOGOUT VIEW -----
@@ -33,16 +36,8 @@ def user_logout(request):
 @login_required
 def medicine_list(request):
     medicines = Medicine.objects.all()
-
-    # Low-stock alerts: quantity < 10
     low_stock = medicines.filter(quantity__lt=10)
-
-    # Expiry warnings: expiry date within next 30 days
-    soon_to_expire = medicines.filter(
-        expiry_date__lte=timezone.now().date() + timedelta(days=30)
-    )
-
-    # Total profit from all sales
+    soon_to_expire = medicines.filter(expiry_date__lte=timezone.now().date() + timedelta(days=30))
     sales = Sale.objects.all()
     total_profit = sum(sale.profit() for sale in sales)
 
@@ -89,7 +84,6 @@ def medicine_delete(request, id):
 @login_required
 def medicine_sell(request, id):
     medicine = get_object_or_404(Medicine, id=id)
-    
     if request.method == 'POST':
         try:
             quantity_sold = int(request.POST.get('quantity_sold', 0))
@@ -97,14 +91,10 @@ def medicine_sell(request, id):
             error = "Invalid quantity. Enter a number."
             return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
 
-        if quantity_sold > 0 and quantity_sold <= medicine.quantity:
-            # Reduce stock
+        if 0 < quantity_sold <= medicine.quantity:
             medicine.quantity -= quantity_sold
             medicine.save()
-
-            # Record the sale
             Sale.objects.create(medicine=medicine, quantity_sold=quantity_sold)
-
             return redirect('medicine_list')
         else:
             error = "Invalid quantity. Check stock."

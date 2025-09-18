@@ -27,13 +27,15 @@ def user_login(request):
 
     return render(request, 'inventory/login.html', {'form': form, 'error': error})
 
+
 # ----- LOGOUT VIEW -----
 @login_required
 def user_logout(request):
     logout(request)
     return redirect('user_login')
 
-# ----- MEDICINE LIST VIEW (WITH SEARCH, SUMMARY & CHART DATA) -----
+
+# ----- MEDICINE LIST VIEW (SEARCH + SUMMARY) -----
 @login_required
 def medicine_list(request):
     query = request.GET.get('q')
@@ -44,32 +46,36 @@ def medicine_list(request):
     else:
         medicines = Medicine.objects.all()
 
-    # Calculate low stock and soon to expire
+    # Low stock and soon-to-expire calculations
     low_stock = medicines.filter(quantity__lt=10)
-    soon_to_expire = medicines.filter(expiry_date__lte=timezone.now().date() + timedelta(days=30))
+    today_plus_30 = timezone.now().date() + timedelta(days=30)
+    soon_to_expire = medicines.filter(expiry_date__lte=today_plus_30)
 
-    # Add extra fields for table display
-    for medicine in medicines:
-        medicine.total_value = medicine.quantity * medicine.buying_price
-        medicine.profit_per_unit = medicine.selling_price - medicine.buying_price
+    # Add extra fields for display
+    for med in medicines:
+        med.total_value = med.quantity * med.buying_price
+        med.profit_per_unit = med.selling_price - med.buying_price
 
+    # Totals
     total_quantity = sum(m.quantity for m in medicines)
     total_stock_value = sum(m.total_value for m in medicines)
 
-    # Calculate date for expiry highlighting
-    today_plus_30 = timezone.now().date() + timedelta(days=30)
+    # Calculate normal stock count for template
+    normal_stock_count = medicines.count() - low_stock.count()
 
     context = {
         'medicines': medicines,
         'low_stock': low_stock,
         'soon_to_expire': soon_to_expire,
         'medicine_count': medicines.count(),
+        'normal_stock_count': normal_stock_count,
         'total_quantity': total_quantity,
         'total_stock_value': total_stock_value,
         'query': query,
-        'today_plus_30': today_plus_30,  # pass to template for expiry comparison
+        'today_plus_30': today_plus_30,
     }
     return render(request, 'inventory/medicine_list.html', context)
+
 
 # ----- MEDICINE ADD -----
 @login_required
@@ -82,6 +88,7 @@ def medicine_add(request):
     else:
         form = MedicineForm()
     return render(request, 'inventory/medicine_form.html', {'form': form})
+
 
 # ----- MEDICINE EDIT -----
 @login_required
@@ -96,6 +103,7 @@ def medicine_edit(request, id):
         form = MedicineForm(instance=medicine)
     return render(request, 'inventory/medicine_form.html', {'form': form})
 
+
 # ----- MEDICINE DELETE -----
 @login_required
 def medicine_delete(request, id):
@@ -105,10 +113,12 @@ def medicine_delete(request, id):
         return redirect('medicine_list')
     return render(request, 'inventory/medicine_delete.html', {'medicine': medicine})
 
+
 # ----- MEDICINE SELL -----
 @login_required
 def medicine_sell(request, id):
     medicine = get_object_or_404(Medicine, id=id)
+    error = None
     if request.method == 'POST':
         try:
             quantity_sold = int(request.POST.get('quantity_sold', 0))
@@ -131,7 +141,8 @@ def medicine_sell(request, id):
             error = "Invalid quantity. Check stock."
             return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
 
-    return render(request, 'inventory/medicine_sell.html', {'medicine': medicine})
+    return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
+
 
 # ----- SALES LIST VIEW -----
 @login_required

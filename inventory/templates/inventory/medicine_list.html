@@ -5,197 +5,145 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background-color: #0d1b2a; /* Dark blue */
-            color: #ffffff;
-        }
-        .container {
-            margin-top: 30px;
-        }
-        h1 {
-            color: #f8f9fa;
-            text-shadow: 1px 1px 5px #000;
-        }
-        .table {
-            background: #1b263b; 
-            color: #ffffff;
-            border-radius: 10px;
-            overflow: hidden;
-            table-layout: fixed;
-            word-wrap: break-word;
-        }
-        .table th, .table td {
-            padding: 5px;
-            font-size: 0.9rem;
-        }
-        .table th {
-            background: #415a77;
-            color: #fff;
-        }
-        .table tr:hover {
-            background: #778da9;
-            color: #000;
-        }
-        .btn-custom {
-            background-color: #e0aaff;
-            color: black;
-            border-radius: 10px;
-            transition: 0.3s;
-        }
-        .btn-custom:hover {
-            background-color: #c77dff;
-            color: white;
-        }
-        .top-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .summary {
-            margin-bottom: 15px;
-        }
-        .summary div {
-            display: inline-block;
-            margin-right: 20px;
-            font-weight: bold;
-        }
-        .text-truncate {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .chart-container {
-            margin: 20px 0;
-        }
+        body { background-color: #0d1b2a; color: #ffffff; }
+        .container { margin-top: 30px; }
+        h1 { color: #f8f9fa; text-shadow: 1px 1px 5px #000; }
+        .table { background: #1b263b; color: #ffffff; border-radius: 10px; overflow: hidden; table-layout: fixed; word-wrap: break-word; }
+        .table th, .table td { padding: 5px; font-size: 0.9rem; }
+        .table th { background: #415a77; color: #fff; }
+        .table tr:hover { background: #778da9; color: #000; }
+        .btn-custom { background-color: #e0aaff; color: black; border-radius: 10px; transition: 0.3s; }
+        .btn-custom:hover { background-color: #c77dff; color: white; }
+        .top-buttons { display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; }
+        .summary { margin-bottom: 15px; }
+        .summary div { display: inline-block; margin-right: 20px; font-weight: bold; }
+        .text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chart-container { margin: 20px 0; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Top Buttons and Search -->
-        <div class="top-buttons mb-3">
-            <form method="GET" class="d-flex mb-2" action="">
-                <input class="form-control me-2" type="search" placeholder="Search by Name or Manufacturer" name="q" value="{{ query }}">
-                <button class="btn btn-primary" type="submit">Search</button>
-            </form>
-            <div class="mb-2">
-                <a href="{% url 'medicine_add' %}" class="btn btn-custom">+ Add Medicine</a>
-                <a href="{% url 'sales_list' %}" class="btn btn-success">View Sales</a>
-                <a href="{% url 'user_logout' %}" class="btn btn-danger">Logout</a>
-            </div>
-        </div>
-
-        <!-- Summary Statistics -->
-        <div class="summary text-light">
-            <div>Total Medicines: {{ medicine_count }}</div>
-            <div>Total Quantity: {{ total_quantity }}</div>
-            <div>Total Stock Value: Ksh {{ total_stock_value }}</div>
-        </div>
-
-        <h1 class="text-center mb-4">💊 Pharmacy Medicines</h1>
-
-        <!-- Charts -->
-        <div class="chart-container">
-            <canvas id="stockChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <canvas id="expiryChart"></canvas>
-        </div>
-
-        <!-- Medicines Table -->
-        <div class="table-responsive">
-            <table class="table table-hover table-bordered text-center">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Quantity</th>
-                        <th>Buying Price</th>
-                        <th>Selling Price</th>
-                        <th>Expiry Date</th>
-                        <th>Manufacturer</th>
-                        <th>Stock Status</th>
-                        <th>Expiry Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for medicine in medicines %}
-                    <tr class="{% if medicine in low_stock %}table-warning{% elif medicine in soon_to_expire %}table-danger{% endif %}">
-                        <td class="text-truncate">{{ medicine.name }}</td>
-                        <td>{{ medicine.quantity }}</td>
-                        <td>Ksh {{ medicine.buying_price }}</td>
-                        <td>Ksh {{ medicine.selling_price }}</td>
-                        <td>{{ medicine.expiry_date }}</td>
-                        <td class="text-truncate">{{ medicine.manufacturer }}</td>
-                        <td>{% if medicine.quantity < 10 %}Stock Low{% else %}—{% endif %}</td>
-                        <td>{% if medicine.expiry_date <= today_plus_30 %}Expiring{% else %}—{% endif %}</td>
-                        <td>
-                            <a href="{% url 'medicine_edit' medicine.id %}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{% url 'medicine_delete' medicine.id %}" class="btn btn-danger btn-sm">Delete</a>
-                            <a href="{% url 'medicine_sell' medicine.id %}" class="btn btn-success btn-sm">Sell</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="9" class="text-center">No medicines available.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="container">
+    <!-- Top Buttons and Search -->
+    <div class="top-buttons mb-3">
+        <form method="GET" class="d-flex mb-2" action="">
+            <input class="form-control me-2" type="search" placeholder="Search by Name or Manufacturer" name="q" value="{{ query }}">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+        <div class="mb-2">
+            <a href="{% url 'medicine_add' %}" class="btn btn-custom">+ Add Medicine</a>
+            <a href="{% url 'sales_list' %}" class="btn btn-success">View Sales</a>
+            <a href="{% url 'user_logout' %}" class="btn btn-danger">Logout</a>
         </div>
     </div>
 
-    <script>
-        // Stock Status Pie Chart
-        const stockLabels = ['Low Stock', 'Normal Stock'];
-        const lowStockCount = {{ low_stock|length }};
-        const normalStockCount = {{ medicines|length|add:-low_stock|length }};
-        const stockData = [lowStockCount, normalStockCount];
+    <!-- Summary Statistics -->
+    <div class="summary text-light">
+        <div>Total Medicines: {{ medicine_count }}</div>
+        <div>Total Quantity: {{ total_quantity }}</div>
+        <div>Total Stock Value: Ksh {{ total_stock_value }}</div>
+    </div>
 
-        const ctx1 = document.getElementById('stockChart').getContext('2d');
-        new Chart(ctx1, {
-            type: 'pie',
-            data: {
-                labels: stockLabels,
-                datasets: [{
-                    data: stockData,
-                    backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)'],
-                    borderColor: ['rgba(255,99,132,1)', 'rgba(54,162,235,1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { labels: { color: '#fff' } } }
+    <h1 class="text-center mb-4">💊 Pharmacy Medicines</h1>
+
+    <!-- Charts -->
+    <div class="chart-container">
+        <canvas id="stockChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="expiryChart"></canvas>
+    </div>
+
+    <!-- Medicines Table -->
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered text-center">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Buying Price</th>
+                    <th>Selling Price</th>
+                    <th>Expiry Date</th>
+                    <th>Manufacturer</th>
+                    <th>Stock Status</th>
+                    <th>Expiry Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for medicine in medicines %}
+                <tr class="{% if medicine in low_stock %}table-warning{% elif medicine in soon_to_expire %}table-danger{% endif %}">
+                    <td class="text-truncate">{{ medicine.name }}</td>
+                    <td>{{ medicine.quantity }}</td>
+                    <td>Ksh {{ medicine.buying_price }}</td>
+                    <td>Ksh {{ medicine.selling_price }}</td>
+                    <td>{{ medicine.expiry_date }}</td>
+                    <td class="text-truncate">{{ medicine.manufacturer }}</td>
+                    <td>{% if medicine.quantity < 10 %}Stock Low{% else %}—{% endif %}</td>
+                    <td>{% if medicine.expiry_date <= today_plus_30 %}Expiring{% else %}—{% endif %}</td>
+                    <td>
+                        <a href="{% url 'medicine_edit' medicine.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'medicine_delete' medicine.id %}" class="btn btn-danger btn-sm">Delete</a>
+                        <a href="{% url 'medicine_sell' medicine.id %}" class="btn btn-success btn-sm">Sell</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No medicines available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Stock Status Pie Chart
+    const stockLabels = ['Low Stock', 'Normal Stock'];
+    const lowStockCount = {{ low_stock|length }};
+    const normalStockCount = {{ normal_stock_count }};
+    const stockData = [lowStockCount, normalStockCount];
+
+    const ctx1 = document.getElementById('stockChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: stockLabels,
+            datasets: [{
+                data: stockData,
+                backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)'],
+                borderColor: ['rgba(255,99,132,1)', 'rgba(54,162,235,1)'],
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
+    });
+
+    // Expiry Trend Chart
+    const expiryLabels = [{% for medicine in soon_to_expire %}"{{ medicine.name }}",{% endfor %}];
+    const expiryData = [{% for medicine in soon_to_expire %}1,{% endfor %}];
+
+    const ctx2 = document.getElementById('expiryChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: expiryLabels,
+            datasets: [{
+                label: 'Expiring Soon',
+                data: expiryData,
+                backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#fff' } } },
+            scales: {
+                x: { ticks: { color: '#fff' } },
+                y: { beginAtZero: true, ticks: { color: '#fff', stepSize: 1 } }
             }
-        });
-
-        // Expiry Trend Chart (bar chart for expiring medicines)
-        const expiryLabels = [{% for medicine in soon_to_expire %}"{{ medicine.name }}",{% endfor %}];
-        const expiryData = [{% for medicine in soon_to_expire %}1,{% endfor %}];
-
-        const ctx2 = document.getElementById('expiryChart').getContext('2d');
-        new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: expiryLabels,
-                datasets: [{
-                    label: 'Expiring Soon',
-                    data: expiryData,
-                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { labels: { color: '#fff' } } },
-                scales: {
-                    x: { ticks: { color: '#fff' } },
-                    y: { beginAtZero: true, ticks: { color: '#fff', stepSize: 1 } }
-                }
-            }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>

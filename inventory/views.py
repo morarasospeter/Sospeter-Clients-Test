@@ -55,11 +55,17 @@ def medicine_list(request):
         medicine.total_value = medicine.quantity * medicine.buying_price
         medicine.profit_per_unit = medicine.selling_price - medicine.buying_price
 
+    # Compute totals in Python (to use in template)
+    total_quantity = sum(m.quantity for m in medicines)
+    total_stock_value = sum(m.total_value for m in medicines)
+
     context = {
         'medicines': medicines,
         'low_stock': low_stock,
         'soon_to_expire': soon_to_expire,
         'medicine_count': medicines.count(),
+        'total_quantity': total_quantity,
+        'total_stock_value': total_stock_value,
         'query': query,
     }
     return render(request, 'inventory/medicine_list.html', context)

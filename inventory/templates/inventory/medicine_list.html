@@ -74,8 +74,8 @@
         <!-- Summary Statistics -->
         <div class="summary text-light">
             <div>Total Medicines: {{ medicine_count }}</div>
-            <div>Total Quantity: {{ medicines|sum:'quantity' }}</div>
-            <div>Total Stock Value: Ksh {{ medicines|sum:'total_value' }}</div>
+            <div>Total Quantity: {{ total_quantity }}</div>
+            <div>Total Stock Value: Ksh {{ total_stock_value }}</div>
         </div>
 
         <h1 class="text-center mb-4">💊 Pharmacy Medicines</h1>

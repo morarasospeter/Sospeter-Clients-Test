@@ -3,7 +3,6 @@
 <head>
     <title>Pharmacy System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #0d1b2a; color: #ffffff; }
         .container { margin-top: 30px; }
@@ -18,7 +17,6 @@
         .summary { margin-bottom: 15px; }
         .summary div { display: inline-block; margin-right: 20px; font-weight: bold; }
         .text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .chart-container { margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -44,14 +42,6 @@
     </div>
 
     <h1 class="text-center mb-4">💊 Pharmacy Medicines</h1>
-
-    <!-- Charts -->
-    <div class="chart-container">
-        <canvas id="stockChart"></canvas>
-    </div>
-    <div class="chart-container">
-        <canvas id="expiryChart"></canvas>
-    </div>
 
     <!-- Medicines Table -->
     <div class="table-responsive">
@@ -95,55 +85,5 @@
         </table>
     </div>
 </div>
-
-<script>
-    // Stock Status Pie Chart
-    const stockLabels = ['Low Stock', 'Normal Stock'];
-    const lowStockCount = {{ low_stock|length }};
-    const normalStockCount = {{ normal_stock_count }};
-    const stockData = [lowStockCount, normalStockCount];
-
-    const ctx1 = document.getElementById('stockChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'pie',
-        data: {
-            labels: stockLabels,
-            datasets: [{
-                data: stockData,
-                backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)'],
-                borderColor: ['rgba(255,99,132,1)', 'rgba(54,162,235,1)'],
-                borderWidth: 1
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
-    });
-
-    // Expiry Trend Chart
-    const expiryLabels = [{% for medicine in soon_to_expire %}"{{ medicine.name }}",{% endfor %}];
-    const expiryData = [{% for medicine in soon_to_expire %}1,{% endfor %}];
-
-    const ctx2 = document.getElementById('expiryChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'bar',
-        data: {
-            labels: expiryLabels,
-            datasets: [{
-                label: 'Expiring Soon',
-                data: expiryData,
-                backgroundColor: 'rgba(255, 206, 86, 0.6)',
-                borderColor: 'rgba(255, 206, 86, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { labels: { color: '#fff' } } },
-            scales: {
-                x: { ticks: { color: '#fff' } },
-                y: { beginAtZero: true, ticks: { color: '#fff', stepSize: 1 } }
-            }
-        }
-    });
-</script>
 </body>
 </html>

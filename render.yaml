@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: pharmacy-nathan-3
+    env: python
+    plan: free
+    branch: main  # change if your default branch is different
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py migrate --noinput
+    startCommand: gunicorn pharmacy.wsgi:application
+    autoDeploy: true

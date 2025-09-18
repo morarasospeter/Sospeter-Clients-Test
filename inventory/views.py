@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Medicine, Sale
 from .forms import MedicineForm
@@ -12,17 +12,13 @@ def user_login(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('medicine_list')
-        # If invalid credentials
-        error = "Invalid username or password."
-        return render(request, 'inventory/login.html', {'form': form, 'error': error})
+            # AuthenticationForm already validates the credentials
+            user = form.get_user()
+            login(request, user)
+            return redirect('medicine_list')
     else:
         form = AuthenticationForm()
+    
     return render(request, 'inventory/login.html', {'form': form})
 
 # ----- LOGOUT VIEW -----
@@ -30,7 +26,6 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect('user_login')
-
 
 # ----- MEDICINE VIEWS (Require login) -----
 @login_required
@@ -58,7 +53,6 @@ def medicine_list(request):
     }
     return render(request, 'inventory/medicine_list.html', context)
 
-
 @login_required
 def medicine_add(request):
     if request.method == 'POST':
@@ -69,7 +63,6 @@ def medicine_add(request):
     else:
         form = MedicineForm()
     return render(request, 'inventory/medicine_form.html', {'form': form})
-
 
 @login_required
 def medicine_edit(request, id):
@@ -83,7 +76,6 @@ def medicine_edit(request, id):
         form = MedicineForm(instance=medicine)
     return render(request, 'inventory/medicine_form.html', {'form': form})
 
-
 @login_required
 def medicine_delete(request, id):
     medicine = get_object_or_404(Medicine, id=id)
@@ -91,7 +83,6 @@ def medicine_delete(request, id):
         medicine.delete()
         return redirect('medicine_list')
     return render(request, 'inventory/medicine_delete.html', {'medicine': medicine})
-
 
 @login_required
 def medicine_sell(request, id):

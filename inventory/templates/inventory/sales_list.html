@@ -68,6 +68,8 @@
         }
         .chart-container {
             margin: 20px 0;
+            max-width: 300px; /* Make chart small */
+            max-height: 200px; /* Make chart small */
         }
     </style>
 </head>
@@ -178,10 +180,11 @@
         }
     });
 
-    // Stock Status Pie Chart
+    // Stock Status Pie Chart (fixed add filter)
+    {% if medicines and low_stock %}
     const stockLabels = ['Low Stock', 'Normal Stock'];
     const lowStockCount = {{ low_stock|length }};
-    const normalStockCount = {{ medicines|length|add:"-{{ low_stock|length }}" }};
+    const normalStockCount = {{ medicines|length|add:"-lowStockCount" }};
     const stockData = [lowStockCount, normalStockCount];
 
     const ctx2 = document.getElementById('stockChart').getContext('2d');
@@ -198,9 +201,11 @@
         },
         options: {
             responsive: true,
-            plugins: { legend: { labels: { color: '#fff' } } }
+            plugins: { legend: { labels: { color: '#fff' } } },
+            maintainAspectRatio: false
         }
     });
+    {% endif %}
 </script>
 </body>
 </html>

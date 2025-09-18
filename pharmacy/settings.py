@@ -34,7 +34,8 @@ ROOT_URLCONF = 'pharmacy.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  # You can add templates folder path if needed
+        # Added a templates folder in BASE_DIR to keep your login and other templates
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -86,3 +87,7 @@ LOGIN_REDIRECT_URL = '/medicines/'
 
 # Redirect after logout
 LOGOUT_REDIRECT_URL = '/login/'
+
+# Optional: add session expiration for security
+SESSION_COOKIE_AGE = 60 * 60 * 2  # 2 hours
+SESSION_SAVE_EVERY_REQUEST = True

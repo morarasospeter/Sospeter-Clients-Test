@@ -9,17 +9,19 @@ from datetime import timedelta
 
 # ----- LOGIN VIEW -----
 def user_login(request):
+    error = None  # default error message
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            # AuthenticationForm already validates the credentials
-            user = form.get_user()
+            user = form.get_user()  # safely get the authenticated user
             login(request, user)
             return redirect('medicine_list')
+        else:
+            error = "Invalid username or password. Please check both fields."
     else:
         form = AuthenticationForm()
     
-    return render(request, 'inventory/login.html', {'form': form})
+    return render(request, 'inventory/login.html', {'form': form, 'error': error})
 
 # ----- LOGOUT VIEW -----
 @login_required
@@ -89,7 +91,12 @@ def medicine_sell(request, id):
     medicine = get_object_or_404(Medicine, id=id)
     
     if request.method == 'POST':
-        quantity_sold = int(request.POST.get('quantity_sold', 0))
+        try:
+            quantity_sold = int(request.POST.get('quantity_sold', 0))
+        except ValueError:
+            error = "Invalid quantity. Enter a number."
+            return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
+
         if quantity_sold > 0 and quantity_sold <= medicine.quantity:
             # Reduce stock
             medicine.quantity -= quantity_sold

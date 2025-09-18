@@ -48,7 +48,11 @@
             {{ form.as_p }}
             <button type="submit" class="btn btn-success w-100">Login</button>
         </form>
-        {% if error %}
+
+        <!-- Display error messages -->
+        {% if form.errors %}
+            <p class="error-msg">Invalid username or password. Both fields are case-sensitive.</p>
+        {% elif error %}
             <p class="error-msg">{{ error }}</p>
         {% endif %}
     </div>

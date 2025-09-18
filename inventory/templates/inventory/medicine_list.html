@@ -149,7 +149,7 @@
         // Stock Status Pie Chart
         const stockLabels = ['Low Stock', 'Normal Stock'];
         const lowStockCount = {{ low_stock|length }};
-        const normalStockCount = {{ medicines|length|add:"-{{ low_stock|length }}" }};
+        const normalStockCount = {{ medicines|length|add:-low_stock|length }};
         const stockData = [lowStockCount, normalStockCount];
 
         const ctx1 = document.getElementById('stockChart').getContext('2d');
@@ -172,7 +172,7 @@
 
         // Expiry Trend Chart (bar chart for expiring medicines)
         const expiryLabels = [{% for medicine in soon_to_expire %}"{{ medicine.name }}",{% endfor %}];
-        const expiryData = [{% for medicine in soon_to_expire %}1,{% endfor %}]; // each medicine counts as 1
+        const expiryData = [{% for medicine in soon_to_expire %}1,{% endfor %}];
 
         const ctx2 = document.getElementById('expiryChart').getContext('2d');
         new Chart(ctx2, {

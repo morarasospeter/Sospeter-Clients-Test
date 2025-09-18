@@ -33,7 +33,7 @@ def user_logout(request):
     logout(request)
     return redirect('user_login')
 
-# ----- MEDICINE LIST VIEW (WITH SEARCH & SUMMARY) -----
+# ----- MEDICINE LIST VIEW (WITH SEARCH, SUMMARY & CHART DATA) -----
 @login_required
 def medicine_list(request):
     query = request.GET.get('q')
@@ -44,15 +44,20 @@ def medicine_list(request):
     else:
         medicines = Medicine.objects.all()
 
+    # Calculate low stock and soon to expire
     low_stock = medicines.filter(quantity__lt=10)
     soon_to_expire = medicines.filter(expiry_date__lte=timezone.now().date() + timedelta(days=30))
 
+    # Add extra fields for table display
     for medicine in medicines:
         medicine.total_value = medicine.quantity * medicine.buying_price
         medicine.profit_per_unit = medicine.selling_price - medicine.buying_price
 
     total_quantity = sum(m.quantity for m in medicines)
     total_stock_value = sum(m.total_value for m in medicines)
+
+    # Calculate date for expiry highlighting
+    today_plus_30 = timezone.now().date() + timedelta(days=30)
 
     context = {
         'medicines': medicines,
@@ -62,6 +67,7 @@ def medicine_list(request):
         'total_quantity': total_quantity,
         'total_stock_value': total_stock_value,
         'query': query,
+        'today_plus_30': today_plus_30,  # pass to template for expiry comparison
     }
     return render(request, 'inventory/medicine_list.html', context)
 
@@ -115,13 +121,11 @@ def medicine_sell(request, id):
             medicine.quantity -= quantity_sold
             medicine.save()
 
-            # Only pass payment_mode if Sale model has that field
             sale_data = {'medicine': medicine, 'quantity_sold': quantity_sold}
             if 'payment_mode' in [f.name for f in Sale._meta.fields]:
                 sale_data['payment_mode'] = payment_mode
 
             Sale.objects.create(**sale_data)
-
             return redirect('sales_list')
         else:
             error = "Invalid quantity. Check stock."

@@ -15,9 +15,16 @@ class Medicine(models.Model):
         return self.selling_price - self.buying_price
 
 class Sale(models.Model):
+    PAYMENT_CHOICES = [
+        ('Cash', 'Cash'),
+        ('Card', 'Card'),
+        ('Mobile', 'Mobile Payment'),
+    ]
+
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
     quantity_sold = models.PositiveIntegerField()
     sale_date = models.DateTimeField(auto_now_add=True)
+    payment_mode = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='Cash')  # new field
 
     def __str__(self):
         return f"{self.quantity_sold} units of {self.medicine.name}"

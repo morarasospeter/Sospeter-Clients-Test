@@ -44,18 +44,13 @@ def medicine_list(request):
     else:
         medicines = Medicine.objects.all()
 
-    # Low-stock alerts: quantity < 10
     low_stock = medicines.filter(quantity__lt=10)
-
-    # Expiry warnings: expiry date within next 30 days
     soon_to_expire = medicines.filter(expiry_date__lte=timezone.now().date() + timedelta(days=30))
 
-    # Add computed fields: total value & profit per unit
     for medicine in medicines:
         medicine.total_value = medicine.quantity * medicine.buying_price
         medicine.profit_per_unit = medicine.selling_price - medicine.buying_price
 
-    # Compute totals in Python (to use in template)
     total_quantity = sum(m.quantity for m in medicines)
     total_stock_value = sum(m.total_value for m in medicines)
 
@@ -111,7 +106,7 @@ def medicine_sell(request, id):
     if request.method == 'POST':
         try:
             quantity_sold = int(request.POST.get('quantity_sold', 0))
-            payment_mode = request.POST.get('payment_mode', 'Cash')  # default to Cash
+            payment_mode = request.POST.get('payment_mode', 'Cash')
         except ValueError:
             error = "Invalid quantity. Enter a number."
             return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
@@ -119,11 +114,14 @@ def medicine_sell(request, id):
         if 0 < quantity_sold <= medicine.quantity:
             medicine.quantity -= quantity_sold
             medicine.save()
-            Sale.objects.create(
-                medicine=medicine,
-                quantity_sold=quantity_sold,
-                payment_mode=payment_mode
-            )
+
+            # Only pass payment_mode if Sale model has that field
+            sale_data = {'medicine': medicine, 'quantity_sold': quantity_sold}
+            if 'payment_mode' in [f.name for f in Sale._meta.fields]:
+                sale_data['payment_mode'] = payment_mode
+
+            Sale.objects.create(**sale_data)
+
             return redirect('sales_list')
         else:
             error = "Invalid quantity. Check stock."
@@ -140,11 +138,9 @@ def sales_list(request):
     if query:
         sales = sales.filter(medicine__name__icontains=query)
 
-    # Precompute profit & total_sale in Ksh for each sale
     for sale in sales:
         sale.profit = (sale.medicine.selling_price - sale.medicine.buying_price) * sale.quantity_sold
         sale.total_sale = sale.medicine.selling_price * sale.quantity_sold
-        # Ensure payment_mode is always available
         if not hasattr(sale, 'payment_mode') or not sale.payment_mode:
             sale.payment_mode = "Cash"
 

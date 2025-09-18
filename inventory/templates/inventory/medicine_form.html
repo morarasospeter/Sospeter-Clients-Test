@@ -24,6 +24,10 @@
             border-color: #415a77;
             color: #ffffff;
         }
+        label.currency::after {
+            content: " (Ksh)";
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -33,7 +37,23 @@
     <div class="card shadow-sm p-4">
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            
+            <!-- Iterate over form fields to add Ksh label for price fields -->
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label {% if field.name in 'buying_price selling_price' %}currency{% endif %}">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
             <div class="text-center">
                 <button type="submit" class="btn btn-success mt-3">Save Medicine</button>
                 <a href="{% url 'medicine_list' %}" class="btn btn-secondary mt-3">Back</a>

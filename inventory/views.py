@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.db.models import Q
 from .models import Medicine, Sale
 from .forms import MedicineForm
 from django.utils import timezone
@@ -9,12 +10,12 @@ from datetime import timedelta
 
 # ----- LOGIN VIEW -----
 def user_login(request):
-    error = None  # default error message
+    error = None
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = authenticate(request, username=username, password=password)  # Explicit check
+        user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             return redirect('medicine_list')
@@ -32,24 +33,38 @@ def user_logout(request):
     logout(request)
     return redirect('user_login')
 
-# ----- MEDICINE VIEWS (Require login) -----
+# ----- MEDICINE LIST VIEW (WITH SEARCH & SUMMARY) -----
 @login_required
 def medicine_list(request):
-    medicines = Medicine.objects.all()
+    query = request.GET.get('q')
+    if query:
+        medicines = Medicine.objects.filter(
+            Q(name__icontains=query) | Q(manufacturer__icontains=query)
+        )
+    else:
+        medicines = Medicine.objects.all()
+
+    # Low-stock alerts: quantity < 10
     low_stock = medicines.filter(quantity__lt=10)
+
+    # Expiry warnings: expiry date within next 30 days
     soon_to_expire = medicines.filter(expiry_date__lte=timezone.now().date() + timedelta(days=30))
-    sales = Sale.objects.all()
-    total_profit = sum(sale.profit() for sale in sales)
+
+    # Add computed fields: total value & profit per unit
+    for medicine in medicines:
+        medicine.total_value = medicine.quantity * medicine.buying_price
+        medicine.profit_per_unit = medicine.selling_price - medicine.buying_price
 
     context = {
         'medicines': medicines,
-        'total_profit': total_profit,
         'low_stock': low_stock,
         'soon_to_expire': soon_to_expire,
         'medicine_count': medicines.count(),
+        'query': query,
     }
     return render(request, 'inventory/medicine_list.html', context)
 
+# ----- MEDICINE ADD -----
 @login_required
 def medicine_add(request):
     if request.method == 'POST':
@@ -61,6 +76,7 @@ def medicine_add(request):
         form = MedicineForm()
     return render(request, 'inventory/medicine_form.html', {'form': form})
 
+# ----- MEDICINE EDIT -----
 @login_required
 def medicine_edit(request, id):
     medicine = get_object_or_404(Medicine, id=id)
@@ -73,6 +89,7 @@ def medicine_edit(request, id):
         form = MedicineForm(instance=medicine)
     return render(request, 'inventory/medicine_form.html', {'form': form})
 
+# ----- MEDICINE DELETE -----
 @login_required
 def medicine_delete(request, id):
     medicine = get_object_or_404(Medicine, id=id)
@@ -81,6 +98,7 @@ def medicine_delete(request, id):
         return redirect('medicine_list')
     return render(request, 'inventory/medicine_delete.html', {'medicine': medicine})
 
+# ----- MEDICINE SELL -----
 @login_required
 def medicine_sell(request, id):
     medicine = get_object_or_404(Medicine, id=id)
@@ -101,3 +119,26 @@ def medicine_sell(request, id):
             return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
 
     return render(request, 'inventory/medicine_sell.html', {'medicine': medicine})
+
+# ----- SALES LIST VIEW -----
+@login_required
+def sales_list(request):
+    query = request.GET.get('q')
+    sales = Sale.objects.select_related('medicine').all().order_by('-id')
+
+    if query:
+        sales = sales.filter(medicine__name__icontains=query)
+
+    # Precompute profit & total_sale in Ksh
+    for sale in sales:
+        sale.profit = (sale.medicine.selling_price - sale.medicine.buying_price) * sale.quantity_sold
+        sale.total_sale = sale.medicine.selling_price * sale.quantity_sold
+
+    total_profit = sum(sale.profit for sale in sales)
+
+    context = {
+        'sales': sales,
+        'total_profit': total_profit,
+        'query': query,
+    }
+    return render(request, 'inventory/sales_list.html', context)

@@ -1,93 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Pharmacy System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Add / Edit Medicine</title>
     <style>
-        body { background-color: #0d1b2a; color: #ffffff; }
-        .container { margin-top: 30px; }
-        h1 { color: #f8f9fa; text-shadow: 1px 1px 5px #000; }
-        .table { background: #1b263b; color: #ffffff; border-radius: 10px; overflow: hidden; table-layout: fixed; word-wrap: break-word; margin-bottom: 30px; }
-        .table th, .table td { padding: 5px; font-size: 0.9rem; }
-        .table th { background: #415a77; color: #fff; }
-        .table tr:hover { background: #778da9; color: #000; }
-        .btn-custom { background-color: #e0aaff; color: black; border-radius: 10px; transition: 0.3s; }
-        .btn-custom:hover { background-color: #c77dff; color: white; }
-        .top-buttons { display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; }
-        .summary { margin-bottom: 15px; }
-        .summary div { display: inline-block; margin-right: 20px; font-weight: bold; }
-        .category-title { margin-top: 30px; font-size: 1.2rem; font-weight: bold; text-decoration: underline; }
+        body {
+            background-color: #0d1b2a; /* Dark blue background */
+        }
+        h1 {
+            color: #ffffff; /* White title text */
+        }
+        .card {
+            background-color: #1b263b; /* Slightly lighter dark blue for card */
+            color: #ffffff; /* White text inside card */
+        }
+        .btn-success {
+            background-color: #3a7ca5; /* Adjust green to stand out on dark blue */
+            border-color: #3a7ca5;
+        }
+        .btn-secondary {
+            background-color: #415a77; /* Adjust secondary button */
+            border-color: #415a77;
+            color: #ffffff;
+        }
+        label.currency::after {
+            content: " (Ksh)";
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
-<div class="container">
-
-    <!-- Top Buttons & Search -->
-    <div class="top-buttons mb-3">
-        <form method="GET" class="d-flex mb-2" action="">
-            <input class="form-control me-2" type="search" placeholder="Search by Name or Manufacturer" name="q" value="{{ query }}">
-            <button class="btn btn-primary" type="submit">Search</button>
-        </form>
-        <div class="mb-2">
-            <a href="{% url 'medicine_add' %}" class="btn btn-custom">+ Add Medicine</a>
-            <a href="{% url 'sales_list' %}" class="btn btn-success">View Sales</a>
-            <a href="{% url 'user_logout' %}" class="btn btn-danger">Logout</a>
-        </div>
-    </div>
-
-    <!-- Summary -->
-    <div class="summary text-light">
-        <div>Total Medicines: {{ medicine_count }}</div>
-        <div>Total Quantity: {{ total_quantity }}</div>
-        <div>Total Stock Value: Ksh {{ total_stock_value }}</div>
-    </div>
-
-    <h1 class="text-center mb-4">💊 Pharmacy Medicines</h1>
-
-    {% if medicines_by_category %}
-        {% for category, medicines_in_category in medicines_by_category.items %}
-            <div class="category-title text-light">{{ category }}</div>
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered text-center">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Quantity</th>
-                            <th>Buying Price</th>
-                            <th>Selling Price</th>
-                            <th>Expiry Date</th>
-                            <th>Manufacturer</th>
-                            <th>Stock Status</th>
-                            <th>Expiry Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for medicine in medicines_in_category %}
-                            <tr class="{% if medicine.quantity <= 20 %}table-warning{% elif medicine.expiry_status_text == 'Expiring Soon' %}table-danger{% endif %}">
-                                <td>{{ medicine.name }}</td>
-                                <td>{{ medicine.quantity }}</td>
-                                <td>Ksh {{ medicine.buying_price }}</td>
-                                <td>Ksh {{ medicine.selling_price }}</td>
-                                <td>{{ medicine.expiry_date }}</td>
-                                <td>{{ medicine.manufacturer }}</td>
-                                <td>{{ medicine.stock_status_text }}</td>
-                                <td>{{ medicine.expiry_status_text }}</td>
-                                <td>
-                                    <a href="{% url 'medicine_edit' medicine.id %}" class="btn btn-warning btn-sm">Edit</a>
-                                    <a href="{% url 'medicine_delete' medicine.id %}" class="btn btn-danger btn-sm">Delete</a>
-                                    <a href="{% url 'medicine_sell' medicine.id %}" class="btn btn-success btn-sm">Sell</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Add / Edit Medicine</h1>
+    
+    <div class="card shadow-sm p-4">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- ✅ Show general form errors (like invalid date) -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <!-- Iterate over form fields to add Ksh label for price fields -->
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label {% if field.name in 'buying_price selling_price' %}currency{% endif %}">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-success mt-3">Save Medicine</button>
+                <a href="{% url 'medicine_list' %}" class="btn btn-secondary mt-3">Back</a>
             </div>
-        {% endfor %}
-    {% else %}
-        <div class="text-center">No medicines available.</div>
-    {% endif %}
+        </form>
+    </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

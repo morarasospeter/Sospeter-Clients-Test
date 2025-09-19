@@ -54,7 +54,7 @@ WSGI_APPLICATION = 'pharmacy.wsgi.application'
 # -------------------------
 DATABASES = {
     'default': dj_database_url.parse(
-        "postgresql://pharmacy_db_62y0_user:Ci8Cdq6NOKoyoJGc9qJzGhB9KeKZdhPQ@dpg-d36j0dndiees73bsu9ng-a/pharmacy_db_62y0",
+        "postgresql://pharmacy_db_62y0_user:Ci8Cdq6NOKoyoJGc9qJzGhB9KeKZdhPQ@dpg-d36j0dndiees73bsu9ng-a.oregon-postgres.render.com:5432/pharmacy_db_62y0",
         conn_max_age=600,
     )
 }

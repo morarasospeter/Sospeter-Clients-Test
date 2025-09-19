@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.db.models import Q, F, Sum
+from django.db.models import Q, Sum
 from .models import Medicine, Sale
 from .forms import MedicineForm
 from django.utils import timezone
@@ -50,11 +50,9 @@ def medicine_list(request):
     # Group medicines by category
     medicines_by_category = defaultdict(list)
     for med in medicines:
-        # Add extra display fields
-        med.total_value = med.quantity * med.buying_price
-        med.profit_per_unit = med.selling_price - med.buying_price
-        med.stock_status_text = "Low Stock" if med.quantity <= 20 else "In Stock"
-        med.expiry_status_text = "Expiring Soon" if med.expiry_date <= today_plus_30 else "Valid"
+        # Add display fields
+        med.stock_status_text = med.stock_status()
+        med.expiry_status_text = med.expiry_status()
         medicines_by_category[med.category].append(med)
 
     context = {
@@ -136,6 +134,7 @@ def sales_list(request):
     today = timezone.now().date()
     daily_sales = sales.filter(sale_date__date=today)
 
+    # Add calculated fields
     for sale in sales:
         sale.profit = (sale.medicine.selling_price - sale.medicine.buying_price) * sale.quantity_sold
         sale.total_sale = sale.medicine.selling_price * sale.quantity_sold

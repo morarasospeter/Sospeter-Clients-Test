@@ -1,6 +1,8 @@
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
 
-# Medicine categories
+# ----- MEDICINE CATEGORIES -----
 CATEGORY_CHOICES = [
     ('Pain Relief & Anti-inflammatory', 'Pain Relief & Anti-inflammatory'),
     ('Antibiotics', 'Antibiotics'),
@@ -13,12 +15,13 @@ CATEGORY_CHOICES = [
     ('Topical/External', 'Topical/External'),
 ]
 
+# ----- MEDICINE MODEL -----
 class Medicine(models.Model):
     name = models.CharField(max_length=100)
     category = models.CharField(
         max_length=50,
         choices=CATEGORY_CHOICES,
-        default='Pain Relief & Anti-inflammatory'  # default for existing rows
+        default='Pain Relief & Anti-inflammatory'
     )
     quantity = models.PositiveIntegerField()
     buying_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -35,17 +38,17 @@ class Medicine(models.Model):
 
     def stock_status(self):
         """Returns stock status text"""
-        if self.quantity <= 20:  # Example threshold for low stock
+        if self.quantity <= 20:
             return "Low Stock"
         return "In Stock"
 
     def expiry_status(self):
-        """Optional method to check if expiring soon"""
-        from django.utils import timezone
-        if self.expiry_date <= timezone.now().date() + timezone.timedelta(days=30):
+        """Returns expiry status text"""
+        if self.expiry_date <= timezone.now().date() + timedelta(days=30):
             return "Expiring Soon"
         return "Valid"
 
+# ----- SALE MODEL -----
 class Sale(models.Model):
     PAYMENT_CHOICES = [
         ('Cash', 'Cash'),

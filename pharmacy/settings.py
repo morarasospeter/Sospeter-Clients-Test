@@ -50,16 +50,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pharmacy.wsgi.application'
 
 # -------------------------
-# Database (Postgres on Render)
+# Database (Temporary SQLite for free Render plan)
 # -------------------------
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pharmacy_db_62y0',
-        'USER': 'pharmacy_db_62y0_user',
-        'PASSWORD': 'Ci8Cdq6NOKoyoJGc9qJzGhB9KeKZdhPQ',
-        'HOST': 'dpg-d36j0dndiees73bsu9ng-a',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

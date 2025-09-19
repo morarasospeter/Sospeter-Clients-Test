@@ -1,6 +1,6 @@
 from django.db import models
 
-# Add medicine categories
+# Medicine categories
 CATEGORY_CHOICES = [
     ('Pain Relief & Anti-inflammatory', 'Pain Relief & Anti-inflammatory'),
     ('Antibiotics', 'Antibiotics'),
@@ -15,7 +15,11 @@ CATEGORY_CHOICES = [
 
 class Medicine(models.Model):
     name = models.CharField(max_length=100)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)  # New category field
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        default='Pain Relief & Anti-inflammatory'  # default for existing rows
+    )
     quantity = models.PositiveIntegerField()
     buying_price = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -26,12 +30,21 @@ class Medicine(models.Model):
         return self.name
 
     def profit_per_unit(self):
+        """Returns profit per unit of medicine"""
         return self.selling_price - self.buying_price
 
     def stock_status(self):
+        """Returns stock status text"""
         if self.quantity <= 20:  # Example threshold for low stock
-            return "Low Stock"  # Updated text here
+            return "Low Stock"
         return "In Stock"
+
+    def expiry_status(self):
+        """Optional method to check if expiring soon"""
+        from django.utils import timezone
+        if self.expiry_date <= timezone.now().date() + timezone.timedelta(days=30):
+            return "Expiring Soon"
+        return "Valid"
 
 class Sale(models.Model):
     PAYMENT_CHOICES = [
@@ -49,4 +62,9 @@ class Sale(models.Model):
         return f"{self.quantity_sold} units of {self.medicine.name}"
 
     def profit(self):
+        """Returns total profit for this sale"""
         return (self.medicine.selling_price - self.medicine.buying_price) * self.quantity_sold
+
+    def total_sale(self):
+        """Returns total sale value"""
+        return self.medicine.selling_price * self.quantity_sold

@@ -81,10 +81,17 @@
         </div>
     </div>
 
-    <!-- Summary Statistics -->
+    <!-- Overall Summary Statistics -->
     <div class="summary text-light">
         <div>Total Sales Records: {{ sales|length }}</div>
         <div>Total Profit: Ksh {{ total_profit }}</div>
+    </div>
+
+    <!-- Daily Sales Summary -->
+    <div class="summary text-warning">
+        <div>Items Sold Today: {{ daily_total_items_sold }}</div>
+        <div>Total Sales Today: Ksh {{ daily_total_sales }}</div>
+        <div>Total Profit Today: Ksh {{ daily_total_profit }}</div>
     </div>
 
     <h1 class="text-center mb-4">💰 Pharmacy Sales</h1>

@@ -37,15 +37,32 @@
     <div class="card shadow-sm p-4">
         <form method="post">
             {% csrf_token %}
-            
-            <!-- ✅ Show general form errors (like invalid date) -->
+
+            <!-- Show general form errors -->
             {% if form.non_field_errors %}
                 <div class="alert alert-danger">
                     {{ form.non_field_errors }}
                 </div>
             {% endif %}
-            
-            <!-- Iterate over form fields to add Ksh label for price fields -->
+
+            <!-- Category selection field -->
+            <div class="mb-3">
+                <label for="id_category" class="form-label">Category</label>
+                <select name="category" id="id_category" class="form-select">
+                    <option value="">Select Category</option>
+                    <option value="Pain Relief & Anti-inflammatory">Pain Relief & Anti-inflammatory</option>
+                    <option value="Antibiotics">Antibiotics</option>
+                    <option value="Cold & Flu">Cold & Flu</option>
+                    <option value="Stomach & Digestive">Stomach & Digestive</option>
+                    <option value="Blood Pressure & Heart">Blood Pressure & Heart</option>
+                    <option value="Diabetes">Diabetes</option>
+                    <option value="Vitamins & Supplements">Vitamins & Supplements</option>
+                    <option value="Women's Health">Women's Health</option>
+                    <option value="Topical/External">Topical/External</option>
+                </select>
+            </div>
+
+            <!-- Iterate over other form fields -->
             {% for field in form %}
                 <div class="mb-3">
                     <label for="{{ field.id_for_label }}" class="form-label {% if field.name in 'buying_price selling_price' %}currency{% endif %}">
@@ -60,7 +77,7 @@
                     {% endfor %}
                 </div>
             {% endfor %}
-            
+
             <div class="text-center">
                 <button type="submit" class="btn btn-success mt-3">Save Medicine</button>
                 <a href="{% url 'medicine_list' %}" class="btn btn-secondary mt-3">Back</a>

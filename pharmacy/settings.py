@@ -1,4 +1,5 @@
 from pathlib import Path
+import dj_database_url  # For parsing the database URL
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,8 +35,7 @@ ROOT_URLCONF = 'pharmacy.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Added a templates folder in BASE_DIR to keep your login and other templates
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],  # Template folder
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -50,13 +50,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pharmacy.wsgi.application'
 
 # -------------------------
-# Database (Temporary SQLite for free Render plan)
+# Database (Postgres on Render)
 # -------------------------
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        "postgresql://pharmacy_db_62y0_user:Ci8Cdq6NOKoyoJGc9qJzGhB9KeKZdhPQ@dpg-d36j0dndiees73bsu9ng-a/pharmacy_db_62y0",
+        conn_max_age=600,
+    )
 }
 
 # Password validation
@@ -81,13 +81,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # -------------------------
 # LOGIN SETTINGS
 # -------------------------
-# Redirect to login page if user not authenticated
 LOGIN_URL = '/login/'
-
-# Redirect after successful login
 LOGIN_REDIRECT_URL = '/medicines/'
-
-# Redirect after logout
 LOGOUT_REDIRECT_URL = '/login/'
 
 # Optional: add session expiration for security

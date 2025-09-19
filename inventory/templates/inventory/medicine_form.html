@@ -38,6 +38,13 @@
         <form method="post">
             {% csrf_token %}
             
+            <!-- ✅ Show general form errors (like invalid date) -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
             <!-- Iterate over form fields to add Ksh label for price fields -->
             {% for field in form %}
                 <div class="mb-3">

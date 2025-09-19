@@ -7,6 +7,7 @@ from .models import Medicine, Sale
 from .forms import MedicineForm
 from django.utils import timezone
 from datetime import timedelta
+from collections import defaultdict
 
 # ----- LOGIN VIEW -----
 def user_login(request):
@@ -14,7 +15,6 @@ def user_login(request):
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
-
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -24,9 +24,7 @@ def user_login(request):
         form = AuthenticationForm(request, data=request.POST)
     else:
         form = AuthenticationForm()
-
     return render(request, 'inventory/login.html', {'form': form, 'error': error})
-
 
 # ----- LOGOUT VIEW -----
 @login_required
@@ -34,8 +32,7 @@ def user_logout(request):
     logout(request)
     return redirect('user_login')
 
-
-# ----- MEDICINE LIST VIEW (SEARCH + SUMMARY) -----
+# ----- MEDICINE LIST VIEW (GROUPED BY CATEGORY) -----
 @login_required
 def medicine_list(request):
     query = request.GET.get('q')
@@ -47,7 +44,7 @@ def medicine_list(request):
         medicines = Medicine.objects.all()
 
     # Low stock and soon-to-expire calculations
-    low_stock = medicines.filter(quantity__lt=10)
+    low_stock = medicines.filter(quantity__lte=20)
     today_plus_30 = timezone.now().date() + timedelta(days=30)
     soon_to_expire = medicines.filter(expiry_date__lte=today_plus_30)
 
@@ -60,22 +57,22 @@ def medicine_list(request):
     total_quantity = sum(m.quantity for m in medicines)
     total_stock_value = sum(m.total_value for m in medicines)
 
-    # Calculate normal stock count for template
-    normal_stock_count = medicines.count() - low_stock.count()
+    # Group medicines by category
+    medicines_by_category = defaultdict(list)
+    for med in medicines:
+        medicines_by_category[med.category].append(med)
 
     context = {
-        'medicines': medicines,
+        'medicines_by_category': medicines_by_category,
         'low_stock': low_stock,
         'soon_to_expire': soon_to_expire,
         'medicine_count': medicines.count(),
-        'normal_stock_count': normal_stock_count,
         'total_quantity': total_quantity,
         'total_stock_value': total_stock_value,
         'query': query,
         'today_plus_30': today_plus_30,
     }
     return render(request, 'inventory/medicine_list.html', context)
-
 
 # ----- MEDICINE ADD -----
 @login_required
@@ -88,7 +85,6 @@ def medicine_add(request):
     else:
         form = MedicineForm()
     return render(request, 'inventory/medicine_form.html', {'form': form})
-
 
 # ----- MEDICINE EDIT -----
 @login_required
@@ -103,7 +99,6 @@ def medicine_edit(request, id):
         form = MedicineForm(instance=medicine)
     return render(request, 'inventory/medicine_form.html', {'form': form})
 
-
 # ----- MEDICINE DELETE -----
 @login_required
 def medicine_delete(request, id):
@@ -112,7 +107,6 @@ def medicine_delete(request, id):
         medicine.delete()
         return redirect('medicine_list')
     return render(request, 'inventory/medicine_delete.html', {'medicine': medicine})
-
 
 # ----- MEDICINE SELL -----
 @login_required
@@ -130,12 +124,7 @@ def medicine_sell(request, id):
         if 0 < quantity_sold <= medicine.quantity:
             medicine.quantity -= quantity_sold
             medicine.save()
-
-            sale_data = {'medicine': medicine, 'quantity_sold': quantity_sold}
-            if 'payment_mode' in [f.name for f in Sale._meta.fields]:
-                sale_data['payment_mode'] = payment_mode
-
-            Sale.objects.create(**sale_data)
+            Sale.objects.create(medicine=medicine, quantity_sold=quantity_sold, payment_mode=payment_mode)
             return redirect('sales_list')
         else:
             error = "Invalid quantity. Check stock."
@@ -143,8 +132,7 @@ def medicine_sell(request, id):
 
     return render(request, 'inventory/medicine_sell.html', {'medicine': medicine, 'error': error})
 
-
-# ----- SALES LIST VIEW -----
+# ----- SALES LIST VIEW (DAILY SALES SUMMARY) -----
 @login_required
 def sales_list(request):
     query = request.GET.get('q')
@@ -153,17 +141,26 @@ def sales_list(request):
     if query:
         sales = sales.filter(medicine__name__icontains=query)
 
+    today = timezone.now().date()
+    daily_sales = sales.filter(sale_date__date=today)
+
     for sale in sales:
         sale.profit = (sale.medicine.selling_price - sale.medicine.buying_price) * sale.quantity_sold
         sale.total_sale = sale.medicine.selling_price * sale.quantity_sold
         if not hasattr(sale, 'payment_mode') or not sale.payment_mode:
             sale.payment_mode = "Cash"
 
+    daily_total_profit = sum((s.medicine.selling_price - s.medicine.buying_price) * s.quantity_sold for s in daily_sales)
+    daily_total_sales = sum(s.medicine.selling_price * s.quantity_sold for s in daily_sales)
+    daily_total_items_sold = sum(s.quantity_sold for s in daily_sales)
     total_profit = sum(sale.profit for sale in sales)
 
     context = {
         'sales': sales,
         'total_profit': total_profit,
+        'daily_total_profit': daily_total_profit,
+        'daily_total_sales': daily_total_sales,
+        'daily_total_items_sold': daily_total_items_sold,
         'query': query,
     }
     return render(request, 'inventory/sales_list.html', context)

@@ -50,7 +50,8 @@ def medicine_list(request):
     # Group medicines by category
     medicines_by_category = defaultdict(list)
     for med in medicines:
-        # Add display fields
+        med.total_value = med.quantity * med.buying_price
+        med.profit_per_unit = med.selling_price - med.buying_price
         med.stock_status_text = med.stock_status()
         med.expiry_status_text = med.expiry_status()
         medicines_by_category[med.category].append(med)
@@ -71,8 +72,12 @@ def medicine_add(request):
     if request.method == 'POST':
         form = MedicineForm(request.POST)
         if form.is_valid():
-            form.save()
+            medicine = form.save(commit=False)
+            medicine.save()  # Save to DB
             return redirect('medicine_list')
+        else:
+            # Show errors if form is invalid
+            return render(request, 'inventory/medicine_form.html', {'form': form})
     else:
         form = MedicineForm()
     return render(request, 'inventory/medicine_form.html', {'form': form})
@@ -134,10 +139,9 @@ def sales_list(request):
     today = timezone.now().date()
     daily_sales = sales.filter(sale_date__date=today)
 
-    # Add calculated fields
     for sale in sales:
-        sale.profit = (sale.medicine.selling_price - sale.medicine.buying_price) * sale.quantity_sold
-        sale.total_sale = sale.medicine.selling_price * sale.quantity_sold
+        sale.profit = sale.profit()
+        sale.total_sale = sale.total_sale()
 
     daily_total_profit = sum((s.medicine.selling_price - s.medicine.buying_price) * s.quantity_sold for s in daily_sales)
     daily_total_sales = sum(s.medicine.selling_price * s.quantity_sold for s in daily_sales)

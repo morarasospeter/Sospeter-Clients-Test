@@ -17,13 +17,12 @@
         .summary { margin-bottom: 15px; }
         .summary div { display: inline-block; margin-right: 20px; font-weight: bold; }
         .category-title { margin-top: 30px; font-size: 1.2rem; font-weight: bold; text-decoration: underline; }
-        .low-stock { background-color: #f0ad4e !important; }
-        .expiring { background-color: #d9534f !important; color: white; }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- Top Buttons and Search -->
+
+    <!-- Top Buttons & Search -->
     <div class="top-buttons mb-3">
         <form method="GET" class="d-flex mb-2" action="">
             <input class="form-control me-2" type="search" placeholder="Search by Name or Manufacturer" name="q" value="{{ query }}">
@@ -36,7 +35,7 @@
         </div>
     </div>
 
-    <!-- Summary Statistics -->
+    <!-- Summary -->
     <div class="summary text-light">
         <div>Total Medicines: {{ medicine_count }}</div>
         <div>Total Quantity: {{ total_quantity }}</div>
@@ -47,49 +46,48 @@
 
     {% if medicines_by_category %}
         {% for category, medicines_in_category in medicines_by_category.items %}
-            {% if medicines_in_category %}
-                <div class="category-title text-light">{{ category }}</div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered text-center">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Quantity</th>
-                                <th>Buying Price</th>
-                                <th>Selling Price</th>
-                                <th>Expiry Date</th>
-                                <th>Manufacturer</th>
-                                <th>Stock Status</th>
-                                <th>Expiry Status</th>
-                                <th>Actions</th>
+            <div class="category-title text-light">{{ category }}</div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered text-center">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Buying Price</th>
+                            <th>Selling Price</th>
+                            <th>Expiry Date</th>
+                            <th>Manufacturer</th>
+                            <th>Stock Status</th>
+                            <th>Expiry Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medicine in medicines_in_category %}
+                            <tr class="{% if medicine.quantity <= 20 %}table-warning{% elif medicine.expiry_status_text == 'Expiring Soon' %}table-danger{% endif %}">
+                                <td>{{ medicine.name }}</td>
+                                <td>{{ medicine.quantity }}</td>
+                                <td>Ksh {{ medicine.buying_price }}</td>
+                                <td>Ksh {{ medicine.selling_price }}</td>
+                                <td>{{ medicine.expiry_date }}</td>
+                                <td>{{ medicine.manufacturer }}</td>
+                                <td>{{ medicine.stock_status_text }}</td>
+                                <td>{{ medicine.expiry_status_text }}</td>
+                                <td>
+                                    <a href="{% url 'medicine_edit' medicine.id %}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{% url 'medicine_delete' medicine.id %}" class="btn btn-danger btn-sm">Delete</a>
+                                    <a href="{% url 'medicine_sell' medicine.id %}" class="btn btn-success btn-sm">Sell</a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for medicine in medicines_in_category %}
-                                <tr class="{% if medicine.quantity <= 20 %}low-stock{% elif medicine.expiry_date <= today_plus_30 %}expiring{% endif %}">
-                                    <td>{{ medicine.name }}</td>
-                                    <td>{{ medicine.quantity }}</td>
-                                    <td>Ksh {{ medicine.buying_price }}</td>
-                                    <td>Ksh {{ medicine.selling_price }}</td>
-                                    <td>{{ medicine.expiry_date }}</td>
-                                    <td>{{ medicine.manufacturer }}</td>
-                                    <td>{{ medicine.stock_status }}</td>
-                                    <td>{{ medicine.expiry_status }}</td>
-                                    <td>
-                                        <a href="{% url 'medicine_edit' medicine.id %}" class="btn btn-warning btn-sm">Edit</a>
-                                        <a href="{% url 'medicine_delete' medicine.id %}" class="btn btn-danger btn-sm">Delete</a>
-                                        <a href="{% url 'medicine_sell' medicine.id %}" class="btn btn-success btn-sm">Sell</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endfor %}
     {% else %}
         <div class="text-center">No medicines available.</div>
     {% endif %}
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

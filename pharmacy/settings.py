@@ -7,11 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = 'django-insecure-6)-^d!#t9ne)m2wqv9$0__76=3ww!z8i#mur*@3b_n(xy9x4+h'
 DEBUG = True
-<<<<<<< HEAD
 ALLOWED_HOSTS =["sospeter-clients-test.onrender.com", "localhost", "127.0.0.1"]# You can add your Render app domain here for production
-=======
-ALLOWED_HOSTS = ["sospeter-clients-test.onrender.com", "localhost", "127.0.0.1"]
->>>>>>> fbd8c8b (Updated medicine stock handling: corrected total quantity calculation, ensured subtraction on sale, restored stock on sale delete, and fixed sale receipt handling)
 
 # Application definition
 INSTALLED_APPS = [

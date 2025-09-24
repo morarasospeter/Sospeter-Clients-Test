@@ -238,20 +238,16 @@ def sales_list(request):
     }
     return render(request, 'inventory/sales_list.html', context)
 
-# ----- SALE RECEIPT VIEW (Updated) -----
+# ----- SALE RECEIPT VIEW -----
 @login_required
 def sale_receipt(request, sale_id):
     sale = get_object_or_404(Sale, id=sale_id)
-
-    # Calculate total per medicine and grand total
     sale_items = sale.items.all()
     for item in sale_items:
-        item.total = item.quantity * item.price  # total per medicine
-
+        item.total = item.quantity * item.price
     total_price = sum(item.total for item in sale_items)
     profit = sum((item.price - item.medicine.buying_price) * item.quantity for item in sale_items)
 
-    # Plain text download
     if request.GET.get("print") == "true":
         receipt_text = "--- PHARMACY RECEIPT ---\n\n"
         for item in sale_items:
@@ -261,12 +257,11 @@ def sale_receipt(request, sale_id):
         response['Content-Disposition'] = 'attachment; filename="receipt.txt"'
         return response
 
-    # Render HTML receipt with buttons
     context = {
         'sale': sale,
         'total_price': total_price,
         'profit': profit,
-        'sale_items': sale_items,  # pass items with total
+        'sale_items': sale_items,
         'show_back_button': False
     }
     return render(request, 'inventory/sale_receipt.html', context)
@@ -275,8 +270,6 @@ def sale_receipt(request, sale_id):
 @login_required
 def sale_delete(request, sale_id):
     sale = get_object_or_404(Sale, id=sale_id)
-    for item in sale.items.all():
-        item.medicine.quantity += item.quantity
-        item.medicine.save()
+    # Only delete sale; stock is restored via post_delete signal in models.py
     sale.delete()
     return redirect('sales_list')

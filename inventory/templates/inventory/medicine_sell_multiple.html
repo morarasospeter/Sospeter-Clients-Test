@@ -1,0 +1,223 @@
+{% extends "inventory/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #0d1b2a; /* Dark navy */
+        font-family: Arial, sans-serif;
+        color: #ffffff;
+    }
+    h2 {
+        color: #f8f9fa;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        background-color: #1b263b; /* dark table background */
+        color: #ffffff;
+    }
+    th, td {
+        border: 1px solid #415a77;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #415a77; /* darker header */
+        color: #ffffff;
+    }
+    input, select {
+        padding: 6px;
+        border-radius: 5px;
+        border: 1px solid #415a77;
+        background-color: #0d1b2a;
+        color: #ffffff;
+    }
+    button, .btn {
+        padding: 6px 12px;
+        margin: 3px;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-success, button[type="submit"] {
+        background-color: #3a7ca5;
+        color: #ffffff;
+    }
+    .btn-success:hover, button[type="submit"]:hover {
+        background-color: #326d91;
+    }
+    .btn-secondary {
+        background-color: #415a77;
+        color: #ffffff;
+    }
+    .btn-secondary:hover {
+        background-color: #334766;
+    }
+    .removeRow {
+        background-color: #d9534f;
+        color: #ffffff;
+    }
+    .removeRow:hover {
+        background-color: #c9302c;
+    }
+    #addRowBtn {
+        background-color: #3a7ca5;
+        color: #ffffff;
+        border: none;
+    }
+    #addRowBtn:hover {
+        background-color: #326d91;
+    }
+    #searchInput {
+        margin-bottom: 12px;
+        padding: 6px;
+        width: 300px;
+        background-color: #1b263b;
+        color: #ffffff;
+        border: 1px solid #415a77;
+        border-radius: 5px;
+    }
+    p {
+        font-weight: bold;
+    }
+</style>
+
+<h2>Sell Medicines</h2>
+
+{% if error %}
+<p style="color:#ff4d4d">{{ error }}</p>
+{% endif %}
+
+<!-- Search Medicines -->
+<input type="text" id="searchInput" placeholder="Search medicines..." value="{{ query|default:'' }}">
+
+<form method="POST" id="sellForm">
+    {% csrf_token %}
+
+    <table id="medicineTable">
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Quantity</th>
+                <th>Price per Unit</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="medicineRow">
+                <td>
+                    <select name="medicine" class="medicineSelect">
+                        <option value="">-- Select Medicine --</option>
+                        {% for med in medicines %}
+                            <option value="{{ med.id }}" data-price="{{ med.selling_price }}" data-stock="{{ med.quantity }}"
+                                {% if preselected_medicine and preselected_medicine.id == med.id %} selected {% endif %}>
+                                {{ med.name }} (Stock: {{ med.quantity }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input type="number" name="quantity" class="quantityInput" min="1" value="{% if preselected_medicine %}1{% else %}1{% endif %}"></td>
+                <td><input type="number" name="price" class="priceInput" step="0.01" readonly
+                    value="{% if preselected_medicine %}{{ preselected_medicine.selling_price }}{% endif %}"></td>
+                <td><button type="button" class="removeRow">Remove</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" id="addRowBtn">+ Add Another Medicine</button>
+    <br><br>
+
+    <label for="payment_mode">Payment Mode:</label>
+    <select name="payment_mode" required>
+        <option value="Cash">Cash</option>
+        <option value="Card">Card</option>
+        <option value="Mobile">Mobile Payment</option>
+    </select>
+    <br><br>
+
+    <input type="hidden" name="items" id="itemsInput">
+    <button type="submit" class="btn btn-success">Complete Sale</button>
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const addRowBtn = document.getElementById("addRowBtn");
+    const tableBody = document.querySelector("#medicineTable tbody");
+    const sellForm = document.getElementById("sellForm");
+    const searchInput = document.getElementById("searchInput");
+
+    function updatePrice(row) {
+        const select = row.querySelector(".medicineSelect");
+        const priceInput = row.querySelector(".priceInput");
+        const qtyInput = row.querySelector(".quantityInput");
+
+        select.addEventListener("change", function() {
+            const selectedOption = select.options[select.selectedIndex];
+            const price = selectedOption.dataset.price || 0;
+            const stock = selectedOption.dataset.stock || 0;
+            priceInput.value = price;
+            qtyInput.max = stock;
+        });
+
+        // Trigger change once to set price for preselected medicine
+        select.dispatchEvent(new Event('change'));
+    }
+
+    document.querySelectorAll(".medicineRow").forEach(updatePrice);
+
+    addRowBtn.addEventListener("click", function() {
+        const newRow = tableBody.querySelector(".medicineRow").cloneNode(true);
+        newRow.querySelector(".quantityInput").value = 1;
+        newRow.querySelector(".priceInput").value = "";
+        newRow.querySelector(".medicineSelect").selectedIndex = 0;
+        tableBody.appendChild(newRow);
+        updatePrice(newRow);
+        addRemoveListener(newRow);
+    });
+
+    function addRemoveListener(row) {
+        row.querySelector(".removeRow").addEventListener("click", function() {
+            if (tableBody.querySelectorAll(".medicineRow").length > 1) {
+                row.remove();
+            } else {
+                alert("At least one medicine is required.");
+            }
+        });
+    }
+
+    document.querySelectorAll(".medicineRow").forEach(addRemoveListener);
+
+    sellForm.addEventListener("submit", function(e) {
+        const items = [];
+        document.querySelectorAll(".medicineRow").forEach(row => {
+            const select = row.querySelector(".medicineSelect");
+            const qty = row.querySelector(".quantityInput").value;
+            const price = row.querySelector(".priceInput").value;
+            if (select.value) {
+                items.push({
+                    medicine_id: select.value,
+                    quantity: qty,
+                    price: price
+                });
+            }
+        });
+        document.getElementById("itemsInput").value = JSON.stringify(items);
+    });
+
+    // Search functionality
+    searchInput.addEventListener("keyup", function() {
+        const filter = searchInput.value.toLowerCase();
+        document.querySelectorAll(".medicineSelect option").forEach(option => {
+            if (option.text.toLowerCase().includes(filter) || option.value === "") {
+                option.style.display = "";
+            } else {
+                option.style.display = "none";
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

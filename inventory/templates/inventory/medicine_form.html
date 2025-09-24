@@ -6,27 +6,54 @@
     <title>Add / Edit Medicine</title>
     <style>
         body {
-            background-color: #0d1b2a; /* Dark blue background */
+            background-color: #000000; /* pure black */
+            color: #ffffff; /* white text */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
         h1 {
-            color: #ffffff; /* White title text */
+            color: #ffffff;
         }
         .card {
-            background-color: #1b263b; /* Slightly lighter dark blue for card */
-            color: #ffffff; /* White text inside card */
+            background-color: #1a1a1a; /* dark grey card for contrast */
+            color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
         .btn-success {
-            background-color: #3a7ca5; /* Custom teal for Save button */
-            border-color: #3a7ca5;
+            background-color: #28a745;
+            border: none;
+        }
+        .btn-success:hover {
+            background-color: #218838;
         }
         .btn-secondary {
-            background-color: #415a77; /* Custom secondary button */
-            border-color: #415a77;
+            background-color: #444444;
+            border: none;
             color: #ffffff;
+        }
+        .btn-secondary:hover {
+            background-color: #333333;
         }
         label.currency::after {
             content: " (Ksh)";
             font-weight: normal;
+        }
+        .form-control, select {
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #555555;
+            border-radius: 6px;
+        }
+        .form-control:focus, select:focus {
+            background-color: #111111;
+            color: #ffffff;
+            border-color: #28a745;
+            box-shadow: none;
+        }
+        .text-danger {
+            color: #ff4d4d !important;
         }
     </style>
 </head>
@@ -37,7 +64,7 @@
             <form method="post">
                 {% csrf_token %}
 
-                <!-- Iterate over form fields -->
+                <!-- Iterate over all form fields including category -->
                 {% for field in form %}
                     <div class="mb-3">
                         <label for="{{ field.id_for_label }}" class="form-label {% if field.name in 'buying_price selling_price' %}currency{% endif %}">
@@ -56,8 +83,8 @@
                 {% endfor %}
 
                 <div class="text-center">
-                    <button type="submit" class="btn btn-success mt-3">Save Medicine</button>
-                    <a href="{% url 'medicine_list' %}" class="btn btn-secondary mt-3">Back</a>
+                    <button type="submit" class="btn btn-success mt-3 w-100">Save Medicine</button>
+                    <a href="{% url 'medicine_list' %}" class="btn btn-secondary mt-3 w-100">Back</a>
                 </div>
             </form>
         </div>

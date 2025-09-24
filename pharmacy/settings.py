@@ -1,5 +1,5 @@
 from pathlib import Path
-import dj_database_url  # For parsing the database URL
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = 'django-insecure-6)-^d!#t9ne)m2wqv9$0__76=3ww!z8i#mur*@3b_n(xy9x4+h'
 DEBUG = True
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']  # You can add your Render app domain here for production
 
 # Application definition
 INSTALLED_APPS = [
@@ -50,13 +50,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pharmacy.wsgi.application'
 
 # -------------------------
-# Database (Postgres on Render)
+# Database (Use local SQLite for backup project only)
 # -------------------------
 DATABASES = {
-    'default': dj_database_url.parse(
-        "postgresql://pharmacy_db_62y0_user:Ci8Cdq6NOKoyoJGc9qJzGhB9KeKZdhPQ@dpg-d36j0dndiees73bsu9ng-a.oregon-postgres.render.com:5432/pharmacy_db_62y0",
-        conn_max_age=600,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db_backup.sqlite3',  # separate DB file
+    }
 }
 
 # Password validation

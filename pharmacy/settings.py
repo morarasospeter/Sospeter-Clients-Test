@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = 'django-insecure-6)-^d!#t9ne)m2wqv9$0__76=3ww!z8i#mur*@3b_n(xy9x4+h'
 DEBUG = True
-ALLOWED_HOSTS = ['*']  # You can add your Render app domain here for production
+ALLOWED_HOSTS = ['https://sospeter-clients-test.onrender.com']  # You can add your Render app domain here for production
 
 # Application definition
 INSTALLED_APPS = [

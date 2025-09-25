@@ -1,81 +1,147 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Add / Edit Medicine</title>
     <style>
+        /* BODY */
         body {
-            background-color: #000000; /* pure black */
-            color: #ffffff; /* white text */
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
         }
+
+        /* HEADER */
         h1 {
-            color: #ffffff;
+            color: #ffd700; /* gold text */
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
         }
+
+        /* CARD */
         .card {
-            background-color: #1a1a1a; /* dark grey card for contrast */
+            background-color: #1f1f1f;
             color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+            padding: 40px 30px;
+            max-width: 600px;
+            margin: auto;
         }
-        .btn-success {
-            background-color: #28a745;
-            border: none;
-        }
-        .btn-success:hover {
-            background-color: #218838;
-        }
-        .btn-secondary {
-            background-color: #444444;
-            border: none;
-            color: #ffffff;
-        }
-        .btn-secondary:hover {
-            background-color: #333333;
-        }
+
+        /* FORM LABELS */
         label.currency::after {
             content: " (Ksh)";
             font-weight: normal;
         }
+        label {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* FORM CONTROLS */
         .form-control, select {
-            background-color: #000000;
-            color: #ffffff;
+            background-color: #0d0d0d;
+            color: #fff;
             border: 1px solid #555555;
-            border-radius: 6px;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 16px;
         }
         .form-control:focus, select:focus {
             background-color: #111111;
             color: #ffffff;
-            border-color: #28a745;
-            box-shadow: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 8px #ffd700;
         }
+
+        /* HELP TEXT */
+        .form-text {
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        /* ERROR MESSAGES */
         .text-danger {
             color: #ff4d4d !important;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* BUTTONS */
+        .btn-success {
+            background: linear-gradient(90deg, #28a745, #218838);
+            border: none;
+            font-size: 18px;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            background: linear-gradient(90deg, #218838, #28a745);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(90deg, #444444, #333333);
+            border: none;
+            color: #ffffff;
+            font-size: 18px;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(90deg, #333333, #444444);
+            transform: scale(1.05);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 24px;
+            }
+            .card {
+                padding: 30px 20px;
+            }
+            .form-control, select {
+                font-size: 15px;
+                padding: 8px 10px;
+            }
+            .btn-success, .btn-secondary {
+                font-size: 16px;
+                padding: 10px;
+                width: 100%;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Add / Edit Medicine</h1>
-        <div class="card shadow-sm p-4">
+        <h1>Add / Edit Medicine</h1>
+        <div class="card shadow-sm">
             <form method="post">
                 {% csrf_token %}
 
-                <!-- Iterate over all form fields including category -->
                 {% for field in form %}
                     <div class="mb-3">
                         <label for="{{ field.id_for_label }}" class="form-label {% if field.name in 'buying_price selling_price' %}currency{% endif %}">
                             {{ field.label }}
                         </label>
                         {{ field }}
-                        
+
                         {% if field.help_text %}
                             <small class="form-text text-muted">{{ field.help_text }}</small>
                         {% endif %}
-                        
+
                         {% for error in field.errors %}
                             <div class="text-danger">{{ error }}</div>
                         {% endfor %}

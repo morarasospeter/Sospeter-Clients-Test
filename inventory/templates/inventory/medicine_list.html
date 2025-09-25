@@ -1,106 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>GIBRAVEL Pharmacy System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { 
-            background-color: #000000; 
-            color: #ffffff; 
-            font-family: Arial, sans-serif;
+        /* BODY */
+        body {
+            background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
         }
-        .container { margin-top: 20px; }
-        h1 { color: #ffffff; text-shadow: 1px 1px 5px #111; }
-        h2 { color: #ffd700; margin-top: 20px; }
-        .table { 
-            background: #1a1a1a; 
-            color: #ffffff; 
-            border-radius: 10px; 
-            overflow: hidden; 
-            table-layout: fixed; 
-            word-wrap: break-word; 
+
+        .container { margin-top: 25px; }
+
+        /* HEADINGS */
+        h1 {
+            color: #ffd700;
+            text-shadow: 1px 1px 5px #111;
+            font-size: 28px;
         }
-        .table th, .table td { 
-            padding: 6px; 
-            font-size: 0.9rem; 
-            border: 1px solid #333; 
+        h2 {
+            color: #ffcc00;
+            margin-top: 20px;
+            font-size: 24px;
         }
-        .table th { 
-            background: #333333; 
-            color: #ffffff; 
+
+        /* TABLE */
+        .table {
+            background: #1f1f1f;
+            color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            table-layout: fixed;
+            word-wrap: break-word;
         }
-        .table tr:hover { 
-            background: #444444; 
-            color: #ffffff; 
+        .table th, .table td {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #333;
         }
-        .btn-custom { 
-            background-color: #28a745; 
-            color: white; 
-            border-radius: 8px; 
+        .table th {
+            background: #333333;
+            color: #ffffff;
         }
-        .btn-custom:hover { background-color: #218838; }
-        .btn-sale { 
-            background-color: #17a2b8; 
-            color: white; 
-            border-radius: 8px; 
-            padding: 5px 10px; 
-            text-decoration: none; 
+        .table tr:hover {
+            background: #2b2b2b;
+            color: #fff;
         }
-        .btn-sale:hover { background-color: #138496; }
-        .btn-warning, .btn-danger, .btn-success, .btn-primary { 
-            border: none; 
-            border-radius: 6px; 
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .btn-warning:hover { background-color: #e0a800; }
-        .btn-danger:hover { background-color: #c82333; }
-        .btn-success:hover { background-color: #218838; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .summary { 
-            margin-bottom: 15px; 
-            background: #111111; 
-            padding: 10px; 
-            border-radius: 8px; 
-        }
-        .summary div { 
-            display: inline-block; 
-            margin-right: 15px; 
-            font-weight: bold; 
-        }
-        .text-truncate { 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            white-space: nowrap; 
-        }
+
+        /* INPUT */
         input.form-control {
-            background-color: #000000;
+            background-color: #0d0d0d;
             color: #ffffff;
             border: 1px solid #555555;
+            border-radius: 8px;
+            padding: 10px;
         }
         input.form-control:focus {
             background-color: #111111;
             color: #ffffff;
-            border-color: #28a745;
-            box-shadow: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 8px #ffd700;
         }
+
+        /* BUTTONS */
+        .btn-custom, .btn-success, .btn-danger, .btn-warning, .btn-primary, .btn-sale {
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            padding: 8px 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-custom { background: linear-gradient(90deg, #28a745, #218838); color: #fff; }
+        .btn-custom:hover { background: linear-gradient(90deg, #218838, #28a745); transform: scale(1.05); }
+
+        .btn-success { background: linear-gradient(90deg, #28a745, #218838); color: #fff; }
+        .btn-success:hover { background: linear-gradient(90deg, #218838, #28a745); transform: scale(1.05); }
+
+        .btn-danger { background: linear-gradient(90deg, #d9534f, #c9302c); color: #fff; }
+        .btn-danger:hover { background: linear-gradient(90deg, #c9302c, #d9534f); transform: scale(1.05); }
+
+        .btn-warning { background: linear-gradient(90deg, #ffc107, #e0a800); color: #000; }
+        .btn-warning:hover { background: linear-gradient(90deg, #e0a800, #ffc107); transform: scale(1.05); }
+
+        .btn-primary { background: linear-gradient(90deg, #007bff, #0056b3); color: #fff; }
+        .btn-primary:hover { background: linear-gradient(90deg, #0056b3, #007bff); transform: scale(1.05); }
+
+        .btn-sale { background: linear-gradient(90deg, #17a2b8, #138496); color: #fff; }
+        .btn-sale:hover { background: linear-gradient(90deg, #138496, #17a2b8); transform: scale(1.05); text-decoration: none; }
+
+        /* SUMMARY BOX */
+        .summary {
+            margin-bottom: 20px;
+            background: #111111;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .summary div {
+            display: inline-block;
+            margin-right: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* RESPONSIVE */
         @media (max-width: 768px) {
-            .table th, .table td { font-size: 0.75rem; padding: 3px; }
-            .btn { font-size: 0.7rem; padding: 3px 6px; }
-            h1 { font-size: 1.5rem; }
-            h2 { font-size: 1.2rem; }
+            h1 { font-size: 24px; }
+            h2 { font-size: 20px; }
+            .table th, .table td { font-size: 0.85rem; padding: 6px; }
+            .btn-custom, .btn-success, .btn-danger, .btn-warning, .btn-primary, .btn-sale { font-size: 14px; padding: 6px 10px; margin-bottom: 5px; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 20px; }
+            h2 { font-size: 18px; }
+            .summary div { display: block; margin-bottom: 8px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <!-- Top Buttons and Search -->
-    <div class="top-buttons mb-3 d-flex flex-wrap justify-content-between">
+    <div class="top-buttons mb-4 d-flex flex-wrap justify-content-between align-items-center">
         <form method="GET" class="d-flex mb-2 w-100 w-md-auto" action="">
             <input class="form-control me-2" type="search" placeholder="Search by Name or Manufacturer" name="q" value="{{ query }}">
             <button class="btn btn-primary" type="submit">Search</button>
         </form>
-        <div class="mb-2">
+        <div class="mb-2 d-flex flex-wrap gap-2">
             <a href="{% url 'medicine_add' %}" class="btn btn-custom">+ Add Medicine</a>
             <a href="{% url 'sales_list' %}" class="btn btn-success">View Sales</a>
             <a href="{% url 'user_logout' %}" class="btn btn-danger">Logout</a>
@@ -118,7 +152,7 @@
     <h1 class="text-center mb-4">💊 Available Medicines</h1>
 
     {% if query %}
-        <!-- If search is active -->
+        <!-- Search Results -->
         <div class="table-responsive mb-4">
             <table class="table table-hover table-bordered text-center">
                 <thead>
@@ -158,7 +192,7 @@
             </table>
         </div>
     {% else %}
-        <!-- Grouped by Categories -->
+        <!-- Medicines by Category -->
         {% for category in categories %}
             <h2>{{ category.name }}</h2>
             <div class="table-responsive mb-4">
